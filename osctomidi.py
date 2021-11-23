@@ -16,6 +16,7 @@ if not os.path.isfile('config.yaml'):
 
 def edit_config(SysTrayIcon):
     global config
+    global config_lock
     with config_lock:
         os.system("python config.py")
         config = get_config()
@@ -26,6 +27,7 @@ def exit_osctomidi(SysTrayIcon):
 
 
 def get_config():
+    global config_lock
     with config_lock:
         stream = open('config.yaml', 'r')
         config = yaml.safe_load(stream)
@@ -49,8 +51,10 @@ config = check_config()
 
 
 def pphandler(address, *args):
+    global config_lock
+    with config_lock:
+        midi = mido.open_output(config["Selected Midi Output"])
     macros = []
-    midi = args[0][1]
     for i in args[0][0]:
         macros.append(str(i).strip())
     message = args[1]
@@ -60,6 +64,7 @@ def pphandler(address, *args):
         midi.send(midimessage)
         print("Midi note {note} sent with velocity {vel}".format(
             note=midimessage.note, vel=midimessage.velocity))
+    midi.close()
 
 
 def default_handler(address, *args):
@@ -68,16 +73,13 @@ def default_handler(address, *args):
 
 def main():
     global config
-    with config_lock:
-        midi = mido.open_output(config["Selected Midi Output"])
     dispatcher = Dispatcher()
-    dispatcher.map("/pp/*", pphandler, config['Macro List'], midi)
+    dispatcher.map("/pp/*", pphandler, config['Macro List'])
     dispatcher.set_default_handler(default_handler)
     ip = "0.0.0.0"
     port = 3251
     server = ThreadingOSCUDPServer((ip, port), dispatcher)
     server.serve_forever()
-    midi.close()
 
 
 if __name__ == "__main__":

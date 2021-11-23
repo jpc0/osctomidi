@@ -17,8 +17,8 @@ if not os.path.isfile('config.yaml'):
 def edit_config(SysTrayIcon):
     global config
     global config_lock
+    os.system("python config.py")
     with config_lock:
-        os.system("python config.py")
         config = get_config()
 
 
@@ -27,12 +27,10 @@ def exit_osctomidi(SysTrayIcon):
 
 
 def get_config():
-    global config_lock
-    with config_lock:
-        stream = open('config.yaml', 'r')
-        config = yaml.safe_load(stream)
-        stream.close()
-        return config
+    stream = open('config.yaml', 'r')
+    config = yaml.safe_load(stream)
+    stream.close()
+    return config
 
 
 def check_config():
@@ -52,12 +50,13 @@ config = check_config()
 
 def pphandler(address, *args):
     global config_lock
+    global config
     with config_lock:
         midi = mido.open_output(config["Selected Midi Output"])
-    macros = []
-    for i in args[0][0]:
-        macros.append(str(i).strip())
-    message = args[1]
+        macros = []
+        for i in config["Macro List"]:
+            macros.append(str(i).strip())
+    message = args[0]
     if message in macros:
         midimessage = mido.Message('note_on', note=29,
                                    channel=0, velocity=macros.index(message)+1)
@@ -74,7 +73,7 @@ def default_handler(address, *args):
 def main():
     global config
     dispatcher = Dispatcher()
-    dispatcher.map("/pp/*", pphandler, config['Macro List'])
+    dispatcher.map("/pp/*", pphandler)
     dispatcher.set_default_handler(default_handler)
     ip = "0.0.0.0"
     port = 3251

@@ -5,6 +5,7 @@ from pythonosc.osc_server import ThreadingOSCUDPServer
 import mido
 import yaml
 import os
+from threading import Lock
 
 if not os.path.isfile('config.yaml'):
     os.system("python config.py")
@@ -14,7 +15,10 @@ if not os.path.isfile('config.yaml'):
 
 
 def edit_config(SysTrayIcon):
-    os.system("python config.py")
+    global config
+    with config_lock:
+        os.system("python config.py")
+        config = get_config()
 
 
 def exit_osctomidi(SysTrayIcon):
@@ -22,23 +26,26 @@ def exit_osctomidi(SysTrayIcon):
 
 
 def get_config():
-    stream = open('config.yaml', 'r')
-    config = yaml.safe_load(stream)
-    stream.close()
-    return config
+    with config_lock:
+        stream = open('config.yaml', 'r')
+        config = yaml.safe_load(stream)
+        stream.close()
+        return config
 
 
 def check_config():
     config = get_config()
     if type(config) is not dict:
         os.system("python config.py")
-        get_config()
         check_config()
     elif not "Selected Midi Output" in config.keys():
         os.system("python config.py")
-        get_config()
         check_config()
     return config
+
+
+config_lock = Lock()
+config = check_config()
 
 
 def pphandler(address, *args):
@@ -60,8 +67,9 @@ def default_handler(address, *args):
 
 
 def main():
-    config = check_config()
-    midi = mido.open_output(config["Selected Midi Output"])
+    global config
+    with config_lock:
+        midi = mido.open_output(config["Selected Midi Output"])
     dispatcher = Dispatcher()
     dispatcher.map("/pp/*", pphandler, config['Macro List'], midi)
     dispatcher.set_default_handler(default_handler)

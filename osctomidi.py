@@ -59,7 +59,7 @@ def pphandler(address, *args):
     message = args[0]
     if message in macros:
         midimessage = mido.Message('note_on', note=29,
-                                   channel=0, velocity=macros.index(message)+1)
+                                   channel=0, velocity=macros.index(message)+1) # This will queue the macro in PP
         midi.send(midimessage)
         print("Midi note {note} sent with velocity {vel}".format(
             note=midimessage.note, vel=midimessage.velocity))
@@ -71,8 +71,11 @@ def bbhandler(address, *args):
     global config
     with config_lock:
         midi = mido.open_output(config["Selected Midi Output"])
-    midimessage = mido.Message('note_on', note=29,
-                               channel=0, velocity=args[0]+1)
+    midimessage = mido.Message('note_on', note=18,
+                               channel=0, velocity=args[0]+1) # This will select the correct presentation in PP
+    di.send(midimessage)
+    midimessage = mido.Message('note_on', note=19,
+                               channel=0, velocity=1) # This will queue the actual slide in PP
     midi.send(midimessage)
     print("Midi note {note} sent with velocity {vel}".format(
         note=midimessage.note, vel=midimessage.velocity))

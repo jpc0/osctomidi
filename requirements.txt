@@ -6,6 +6,8 @@ isort==5.10.1
 lazy-object-proxy==1.6.0
 mccabe==0.6.1
 mido==1.2.10
+numpy==1.21.4
+Pillow==8.4.0
 platformdirs==2.4.0
 pycodestyle==2.8.0
 pyflakes==2.4.0
@@ -13,6 +15,8 @@ pylint==2.11.1
 python-osc==1.8.0
 python-rtmidi==1.4.9
 PyYAML==6.0
+six==1.16.0
 toml==0.10.2
 typing_extensions==4.0.0
 wrapt==1.13.3
+wxPython==4.1.1

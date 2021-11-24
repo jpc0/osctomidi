@@ -72,7 +72,7 @@ def bbhandler(address, *args):
     with config_lock:
         midi = mido.open_output(config["Selected Midi Output"])
     midimessage = mido.Message('note_on', note=18,
-                               channel=0, velocity=args[0]+1) # This will select the correct presentation in PP
+                               channel=0, velocity=int(args[0])+1) # This will select the correct presentation in PP
     di.send(midimessage)
     midimessage = mido.Message('note_on', note=19,
                                channel=0, velocity=1) # This will queue the actual slide in PP

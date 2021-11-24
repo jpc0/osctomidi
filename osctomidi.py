@@ -66,6 +66,17 @@ def pphandler(address, *args):
     midi.close()
 
 
+def bbhandler(address, *args):
+    global config_lock
+    global config
+    with config_lock:
+        midi = mido.open_output(config["Selected Midi Output"])
+    midimessage = mido.Message('note_on', note=29,
+                               channel=0, velocity=args[0]+1)
+    midi.send(midimessage)
+    print("Midi note {note} sent with velocity {vel}".format(
+        note=midimessage.note, vel=midimessage.velocity))
+
 def default_handler(address, *args):
     print(f"DEFAULT {address}: {args}")
 
@@ -74,6 +85,7 @@ def main():
     global config
     dispatcher = Dispatcher()
     dispatcher.map("/pp/*", pphandler)
+    dispatcher.map("/bb/*", bbhandler)
     dispatcher.set_default_handler(default_handler)
     ip = "0.0.0.0"
     port = 3251
